@@ -194,6 +194,32 @@ needed every time (tracked in #9 and #33).
 
 ---
 
+## How do I reproduce a past check with the same Docker image?
+
+The default image is a moving tag such as `node:22-bookworm`. A later pull of that tag can resolve to a different image, so it may not reproduce an earlier rebuild exactly.
+
+Use the full image digest recorded by the earlier check. In the JSON report, copy `rebuild.imageDigest` (for example, `node@sha256:<64-hex-digest>`) and pass that value to `--image`:
+
+```sh
+npx releaseproof check sigstore@5.0.0 --image 'node@sha256:<64-hex-digest>'
+```
+
+The text report shortens the digest for display. Use `--json` and read `rebuild.imageDigest` when you need the full value. The report's `rebuild.image` shows the image reference used for the check; `rebuild.imageDigest` records the resolved image digest when Docker provides it.
+
+The GitHub Action accepts the same reference through its `image` input:
+
+```yaml
+- uses: ujjwalv01/releaseproof@v0.1.0
+  with:
+    image: node@sha256:<64-hex-digest>
+```
+
+Digest references such as `node@sha256:<64-hex-digest>` are accepted by the image-reference validation before Docker is called. The validator covers common Docker image-reference forms; it is not a complete OCI reference parser.
+
+Pinning the image reproduces the image used for the rebuild. Keep the package version and source commit the same as the original check as well.
+
+---
+
 ## Why did the rebuild take ten minutes, and when is the install stage skipped?
 
 Most of the time usually goes to the **install** stage, which downloads all dependencies
