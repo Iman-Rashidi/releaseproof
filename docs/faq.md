@@ -3,6 +3,22 @@
 This FAQ covers the questions that come up most often after a first run. For the full rules
 and report format, see [docs/rules.md](rules.md) and [docs/json-report.md](json-report.md).
 
+## How do I reproduce a past check with the exact same Docker image?
+
+Every JSON report records the image used for the rebuild in `rebuild.image` and its
+content digest in `rebuild.imageDigest`. To repeat an older check without relying on a
+moving tag such as `node:22-bookworm`, use the image name with the recorded digest:
+
+```bash
+npx releaseproof check <package>@<version> --image node@sha256:<digest>
+```
+
+Replace `<digest>` with the value recorded in `rebuild.imageDigest` (the value begins
+with `sha256:`). In the GitHub Action, pass the same reference through the `image` input.
+The digest-pinned form is accepted by the Docker image-reference validation introduced
+for #87. The resulting report records the pinned image and the digest actually used,
+so you can check that the rerun used the same image.
+
 ---
 
 ## Why do I get `COULD NOT VERIFY` for a package without provenance, and what do `--repo` and `--commit` change?
